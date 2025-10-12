@@ -1,17 +1,153 @@
-# WinUpdates
 # Windows Debloat & Update Script
 
 A modular PowerShell script to debloat, configure privacy settings, and update Windows systems.
+Designed for Windows Audit Mode (Ctrl+Shift+F3).
 
 ## Features
 
 - **Power Settings**: Sets High Performance mode and display/sleep timeouts to Never
-- **Bloatware Removal**: Removes pre-installed unwanted apps
+- **Bloatware Removal**: Removes pre-installed unwanted apps (keeps GetHelp, YourPhone, WindowsSoundRecorder, WindowsFeedbackHub)
 - **Privacy Configuration**: Disables tracking while keeping diagnostics and location services
+- **Notifications**: Disabled (calendar remains accessible)
 - **Windows Updates**: Downloads then installs Security, Cumulative, and Driver updates
 - **System Optimization**: Cleans temp files and runs disk cleanup
-- **LAN Updates**: Enables Windows Update P2P on local network
+- **LAN Updates**: Enables Windows Update P2P on local network only
 - **Concurrent Execution**: All setup tasks run in parallel for faster completion
+- **Multi-Cycle Updates**: Automatically restarts and re-updates to catch all updates
+
+## Quick Start
+
+### Run directly from GitHub:
+
+```powershell
+irm https://raw.githubusercontent.com/yourusername/yourrepo/main/debloat.ps1 | iex
+```
+
+**To change update cycles:** Edit `$UpdateCycles` at the top of `debloat.ps1` (default is 3)
+
+### Download and run locally:
+
+```powershell
+# Download
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/yourusername/yourrepo/main/debloat.ps1" -OutFile "debloat.ps1"
+
+# Run
+.\debloat.ps1
+```
+
+## Configuration
+
+Edit variables at the top of `debloat.ps1`:
+
+```powershell
+$UpdateCycles = 3  # Number of update-restart cycles
+
+$SkipUpdates = $false
+$SkipDebloat = $false
+$SkipPrivacy = $false
+$SkipOptimization = $false
+$SkipPowerSettings = $false
+```
+
+## How It Works
+
+### Concurrent Execution
+All setup tasks run in parallel:
+- Power settings configuration
+- Bloatware removal
+- Privacy configuration  
+- System optimization
+
+### Update Process
+1. **Download Phase**: All updates downloaded first
+2. **Install Phase**: All updates installed together
+3. **Restart**: Automatic restart after each cycle
+4. **Repeat**: Continues for configured number of cycles
+
+### Update Cycles
+1. **First Run**: Setup tasks + first update
+2. **After Restart**: Automatically runs next update cycle
+3. **Repeats**: Until all cycles complete
+4. **Final**: Shows completion message
+
+## Repository Structure
+
+```
+.
+├── debloat.ps1                      # Main script
+├── modules/
+│   ├── Set-PowerSettings.ps1        # Power configuration
+│   ├── Remove-Bloatware.ps1         # Bloatware removal
+│   ├── Set-PrivacySettings.ps1      # Privacy & notifications
+│   ├── Install-WindowsUpdates.ps1   # Windows updates
+│   └── Optimize-System.ps1          # System cleanup
+├── config/
+│   └── bloatware-list.txt           # Bloatware list
+└── README.md
+```
+
+## What Gets Modified
+
+### Power Settings
+- Power plan: High Performance
+- Display timeout: Never (AC and Battery)
+- Sleep timeout: Never (AC and Battery)
+- Disk timeout: Never
+
+### Bloatware Removal
+- Removes Xbox, Bing, games, and promotional apps
+- Removes third-party bloatware
+- **Keeps**: GetHelp, YourPhone, WindowsSoundRecorder, WindowsFeedbackHub
+
+### Privacy Settings
+- **Tracking**: Disabled (DiagTrack service)
+- **Diagnostics**: Enabled (for troubleshooting)
+- **Telemetry**: Basic level (allows diagnostics)
+- **Location**: Unchanged (enabled)
+- **P2P Updates**: LAN only
+- **Notifications**: Disabled (calendar still works)
+
+### Windows Updates
+- Security updates: Yes
+- Cumulative updates: Yes
+- Driver updates: Yes
+- Feature updates: No
+- Preview updates: No
+
+### System Optimization
+- Cleans temporary files
+- Runs disk cleanup utility
+
+## Requirements
+
+- Windows 10 or Windows 11
+- PowerShell 5.1 or later
+- Administrator privileges
+- Internet connection
+
+## Troubleshooting
+
+### Script execution error
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+### Updates not found
+Ensure Windows Update service is running:
+```powershell
+Start-Service wuauserv
+```
+
+### Module errors
+PSWindowsUpdate module will auto-install, or script falls back to native Windows Update
+
+## License
+
+MIT License
+
+## Disclaimer
+
+This script modifies system settings. Use at your own risk. Always ensure you have backups.r completion
 - **Multi-Cycle Updates**: Automatically restarts and re-updates to catch all updates
 
 ## Quick Start
@@ -182,15 +318,3 @@ Ensure Windows Update service is running:
 ```powershell
 Start-Service wuauserv
 ```
-
-## Contributing
-
-Feel free to submit issues or pull requests to improve the script!
-
-## License
-
-MIT License - Feel free to modify and distribute
-
-## Disclaimer
-
-This script modifies system settings. Use at your own risk. Always ensure you have backups before running system modification scripts.
