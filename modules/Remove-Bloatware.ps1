@@ -1,7 +1,24 @@
-# Bloatware Removal Module
-# Keeps: GetHelp, YourPhone, WindowsSoundRecorder, WindowsFeedbackHub
+<#
+.SYNOPSIS
+    Bloatware Removal Module
+    
+.DESCRIPTION
+    Removes unwanted pre-installed Windows apps
+    
+.NOTES
+    KEPT APPS (not removed):
+    - Microsoft.GetHelp
+    - Microsoft.YourPhone
+    - Microsoft.WindowsSoundRecorder
+    - Microsoft.WindowsFeedbackHub
+#>
+
+# ============================================
+# BLOATWARE LIST
+# ============================================
 
 $BloatwareApps = @(
+    # Microsoft Apps
     "Microsoft.BingNews"
     "Microsoft.BingWeather"
     "Microsoft.Getstarted"
@@ -12,15 +29,21 @@ $BloatwareApps = @(
     "Microsoft.People"
     "Microsoft.SkypeApp"
     "Microsoft.Wallet"
+    
+    # Xbox Apps
     "Microsoft.Xbox.TCUI"
     "Microsoft.XboxApp"
     "Microsoft.XboxGameOverlay"
     "Microsoft.XboxGamingOverlay"
     "Microsoft.XboxIdentityProvider"
     "Microsoft.XboxSpeechToTextOverlay"
+    
+    # Media Apps
     "Microsoft.ZuneMusic"
     "Microsoft.ZuneVideo"
     "Microsoft.WindowsMaps"
+    
+    # Third-Party Bloatware (wildcards)
     "*Candy*"
     "*Disney*"
     "*Facebook*"
@@ -30,7 +53,16 @@ $BloatwareApps = @(
     "*TikTok*"
 )
 
+# ============================================
+# REMOVAL FUNCTION
+# ============================================
+
 function Remove-Bloatware {
+    <#
+    .SYNOPSIS
+        Removes bloatware applications from Windows
+    #>
+    
     Write-Host "Removing bloatware..."
     
     $removed = 0
@@ -49,7 +81,7 @@ function Remove-Bloatware {
             Remove-AppxPackage -Package $pkg.PackageFullName -AllUsers -ErrorAction SilentlyContinue | Out-Null
         }
         
-        # Remove provisioned packages
+        # Remove provisioned packages (new user installations)
         $provPkgs = Get-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue | Where-Object DisplayName -like $app
         foreach ($pkg in $provPkgs) {
             Remove-AppxProvisionedPackage -Online -PackageName $pkg.PackageName -ErrorAction SilentlyContinue | Out-Null

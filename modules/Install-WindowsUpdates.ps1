@@ -1,4 +1,82 @@
-# Windows Update Module
+<#
+.SYNOPSIS
+    Windows Update Module
+    
+.DESCRIPTION
+    Downloads and installs Windows updates
+    - Security updates
+    - Cumulative updates
+    - Driver updates
+    (Excludes Feature and Preview updates)
+#>
+
+# ============================================
+# UPDATE FUNCTIONS
+# ============================================
+
+function Install-WindowsUpdates {
+    <#
+    .SYNOPSIS
+        Main update function - tries PSWindowsUpdate, falls back to native
+    #>
+    
+    Write-Host "Checking for updates..."
+    
+    # ----------------------------------------
+    # Try PSWindowsUpdate Module
+    # ----------------------------------------
+    if (!(Get-Module -ListAvailable -Name PSWindowsUpdate)) {
+        try {
+            Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force | Out-Null
+            Install-Module PSWindowsUpdate -Force -Confirm:$false | Out-Null
+        } catch {
+            Write-Host "Module install failed, using native method"
+            Install-UpdatesNative
+            return
+        }
+    }
+    
+    Import-Module PSWindowsUpdate
+    
+    # ----------------------------------------
+    # Get Applicable Updates
+    # ----------------------------------------
+    # Filter: Security OR Cumulative OR Driver
+    # Exclude: Feature AND Preview
+    $updates = Get-WindowsUpdate | Where-Object {
+        $_.Title -match "Security|Cumulative|Driver" -and 
+        $_.Title -notmatch "Feature|Preview"
+    }
+    
+    if ($updates.Count -eq 0) {
+        Write-Host "No updates found"
+        return
+    }
+    
+    Write-Host "Found $($updates.Count) updates"
+    
+    # ----------------------------------------
+    # Download Phase
+    # ----------------------------------------
+    Write-Host "Downloading..."
+    Get-WindowsUpdate -Download -AcceptAll -IgnoreReboot -Title $updates.Title | Out-Null
+    
+    # ----------------------------------------
+    # Install Phase
+    # ----------------------------------------
+    Write-Host "Installing..."
+    Install-WindowsUpdate -AcceptAll -IgnoreReboot -Title $updates.Title | Out-Null
+    
+    Write-Host "Updates installed"
+}
+
+function Install-UpdatesNative {
+    <#
+    .SYNOPSIS
+        Fallback update function using native Windows Update COM interface
+    #>
+    
+    Write-Host "# Windows Update Module
 
 function Install-WindowsUpdates {
     Write-Host "Checking for updates..."
